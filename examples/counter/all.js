@@ -46,6 +46,8 @@
 
 	'use strict';
 
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
@@ -56,58 +58,42 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var count = function count(type) {
-		return function (state) {
-			switch (type) {
-				case 'INCREMENT':
-					return state + 1;
-				case 'DECREMENT':
-					return state - 1;
-				case 'INCREMENT_IF_ODD':
-					return state % 2 !== 0 ? state + 1 : state;
-				default:
-					return state;
-			}
-		};
-	};
+	var _reactDom = __webpack_require__(159);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _flux = __webpack_require__(158);
+
+	var _flux2 = _interopRequireDefault(_flux);
 
 	var Counter = (function (_Component) {
 		_inherits(Counter, _Component);
 
-		function Counter(props) {
+		function Counter() {
 			_classCallCheck(this, Counter);
 
-			_Component.call(this, props);
-			this.state = 0;
+			_Component.apply(this, arguments);
 		}
-
-		Counter.prototype.componentWillMount = function componentWillMount() {
-			console.time('Counter mount');
-		};
-
-		Counter.prototype.componentDidMount = function componentDidMount() {
-			console.timeEnd('Counter mount');
-		};
 
 		Counter.prototype.toNum = function toNum(num, callback) {
 			var _this = this;
 
 			cancelAnimationFrame(this.rid);
-			var COUNT = this.props.COUNT;
+			var _props = this.props;
+			var INCREMENT = _props.INCREMENT;
+			var DECREMENT = _props.DECREMENT;
 
 			var count = function count() {
-				var state = _this.state;
+				var currentCount = _this.props.currentCount;
 
-				var storeState = _this.$store.getState();
-				console.log(state, num);
 				switch (true) {
-					case state > num:
-						COUNT('DECREMENT');
+					case currentCount > num:
+						DECREMENT();
 						break;
-					case state < num:
-						COUNT('INCREMENT');
+					case currentCount < num:
+						INCREMENT();
 						break;
-					case state === num:
+					case currentCount === num:
 						return callback && callback();
 				}
 				_this.rid = requestAnimationFrame(count);
@@ -115,42 +101,18 @@
 			count();
 		};
 
-		Counter.prototype.componentWillUpdate = function componentWillUpdate() {
-			// debugger
-			console.log('willUpdate', 'Counter');
-		};
-
-		Counter.prototype.componentDidUpdate = function componentDidUpdate() {
-			this;
-			//debugger
-			console.log('DidUpdate', 'Counter');
-		};
-
-		Counter.prototype.componentWillReceiveProps = function componentWillReceiveProps(nextProps) {
-			this.state = nextProps.src;
-		};
-
-		Counter.prototype.shouldComponentUpdate = function shouldComponentUpdate(nextProps, nextState) {
-			return true;
-		};
-
-		Counter.prototype.componentWillUnmount = function componentWillUnmount() {
-			console.log('unmount', 'Counter');
-		};
-
 		Counter.prototype.render = function render() {
 			var _this2 = this;
 
-			//let { COUNT } = this.actions
-			var state = this.state;
-			var props = this.props;
-			var COUNT = props.COUNT;
+			var _props2 = this.props;
+			var INCREMENT = _props2.INCREMENT;
+			var DECREMENT = _props2.DECREMENT;
+			var INCREMENT_IF_ODD = _props2.INCREMENT_IF_ODD;
+			var currentCount = _props2.currentCount;
 
 			var getNum = function getNum(e) {
 				var num = parseInt(_this2.refs.input.value, 10);
-				if (typeof num === 'number') {
-					_this2.toNum(num);
-				}
+				typeof num === 'number' && _this2.toNum(num);
 			};
 			return _react2['default'].createElement(
 				'div',
@@ -159,37 +121,31 @@
 					'span',
 					{ ref: 'efg', 'data-test': 'abaasdf' },
 					'count: ',
-					state
+					currentCount
 				),
 				' ',
 				_react2['default'].createElement(
 					'button',
-					{ onclick: function () {
-							return COUNT('INCREMENT');
-						} },
+					{ onClick: INCREMENT },
 					'+'
 				),
 				' ',
 				_react2['default'].createElement(
 					'button',
-					{ onclick: function () {
-							return COUNT('DECREMENT');
-						} },
+					{ onClick: DECREMENT },
 					'-'
 				),
 				' ',
 				_react2['default'].createElement(
 					'button',
-					{ onclick: function () {
-							return COUNT('INCREMENT_IF_ODD');
-						} },
+					{ onClick: INCREMENT_IF_ODD },
 					'incrementIfOdd'
 				),
 				' ',
 				_react2['default'].createElement('input', { type: 'text', ref: 'input' }),
 				_react2['default'].createElement(
 					'button',
-					{ onclick: getNum },
+					{ onClick: getNum },
 					'run'
 				)
 			);
@@ -198,76 +154,31 @@
 		return Counter;
 	})(_react.Component);
 
-	var Wrap = (function (_Component2) {
-		_inherits(Wrap, _Component2);
+	var methods = {
+		INCREMENT: function INCREMENT() {
+			this.state.currentCount += 1;
+		},
+		DECREMENT: function DECREMENT() {
+			this.state.currentCount -= 1;
+		},
+		INCREMENT_IF_ODD: function INCREMENT_IF_ODD() {
+			var currentCount = this.state.currentCount;
 
-		function Wrap(props) {
-			_classCallCheck(this, Wrap);
-
-			_Component2.call(this, props);
-			this.state = 0;
+			if (currentCount % 2 !== 0) {
+				this.INCREMENT();
+			}
 		}
-
-		Wrap.prototype.getHandlers = function getHandlers() {
-			return [{
-				COUNT: count,
-				'@DID_UPDATE': function DID_UPDATE(data) {
-					return data;
-				}
-			}];
-		};
-
-		Wrap.prototype.componentWillMount = function componentWillMount() {
-			console.time('Wrap mount');
-		};
-
-		Wrap.prototype.componentDidMount = function componentDidMount() {
-			console.timeEnd('Wrap mount');
-			//this.actions.COUNT('INCREMENT')
-		};
-
-		Wrap.prototype.componentWillUpdate = function componentWillUpdate() {
-			// debugger
-			console.log('willUpdate', 'Wrap');
-		};
-
-		Wrap.prototype.componentDidUpdate = function componentDidUpdate() {
-			//debugger
-			console.log('DidUpdate', 'Wrap');
-		};
-
-		Wrap.prototype.componentWillReceiveProps = function componentWillReceiveProps(props) {
-			this.state = props.count;
-		};
-
-		Wrap.prototype.componentWillUnmount = function componentWillUnmount() {
-			console.log('unmount', 'wrap');
-		};
-
-		Wrap.prototype.render = function render() {
-			return _react2['default'].createElement(
-				'div',
-				{ className: 'wrap' },
-				_react2['default'].createElement(Counter, { ref: 'counter', src: this.state, COUNT: this.actions.COUNT })
-			);
-		};
-
-		return Wrap;
-	})(_react.Component);
-
-	var update = function update(count) {
-		_react.render(_react2['default'].createElement(Wrap, { count: count }), document.getElementById('container'), console.log.bind(console, 'render'));
 	};
 
-	update(0);
+	var store = new _flux2['default'](methods, { currentCount: 0 });
+	var renderView = function renderView() {
+		_reactDom2['default'].render(_react2['default'].createElement(Counter, _extends({
+			currentCount: store.getState().currentCount
+		}, store.actions)), document.getElementById('container'));
+	};
 
-	// setTimeout(() => {
-	// 	React.unmountComponentAtNode(document.getElementById('container'))
-	// }, 1000)
-	var num = 0;
-	// setInterval(() => {
-	// 	update(num++)
-	// }, 1000)
+	store.subscribe(renderView);
+	renderView();
 
 /***/ },
 /* 1 */
@@ -19843,6 +19754,85 @@
 
 	module.exports = deprecated;
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+
+/***/ },
+/* 158 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	exports.__esModule = true;
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var Store = (function () {
+		function Store() {
+			var _this = this;
+
+			var props = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+			var initialState = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+			_classCallCheck(this, Store);
+
+			this.state = initialState;
+			this.actions = {};
+			this.listeners = [];
+			Object.assign(this, props);
+
+			var _loop = function (key) {
+				if (typeof _this[key] === 'function') {
+					_this.actions[key] = function () {
+						for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+							args[_key] = arguments[_key];
+						}
+
+						_this[key].apply(_this, args);
+						_this.listeners.forEach(function (listener) {
+							return listener.apply(undefined, [key].concat(args));
+						});
+					};
+				}
+			};
+
+			for (var key in this) {
+				_loop(key);
+			}
+		}
+
+		Store.prototype.getState = function getState() {
+			return this.state;
+		};
+
+		Store.prototype.replaceState = function replaceState(nextState) {
+			this.state = nextState;
+		};
+
+		Store.prototype.subscribe = function subscribe(listener) {
+			var _this2 = this;
+
+			this.listeners.push(listener);
+			return function () {
+				var index = _this2.listeners.indexOf(listener);
+				if (index >= 0) {
+					_this2.listeners.splice(index, 1);
+				}
+			};
+		};
+
+		return Store;
+	})();
+
+	exports['default'] = Store;
+	module.exports = exports['default'];
+
+/***/ },
+/* 159 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = __webpack_require__(3);
+
 
 /***/ }
 /******/ ]);
